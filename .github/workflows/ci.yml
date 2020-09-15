@@ -1,0 +1,30 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  build-test-lint-typecheck-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2 # If you're using actions/checkout@v2 you must set persist-credentials to false in most cases for the deployment to work correctly.
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: '14'
+      - run: yarn install
+      - run: yarn build
+      - run: yarn test
+      - run: yarn lint
+      - run: yarn typecheck
+      - uses: cypress-io/github-action@v2
+        with:
+          start: yarn start
+          wait-on: 'http://localhost:3000'
+          # the entire command will automatically be prefixed with "npm"
+          # and we need the second "npm" to execute "cypress run ..." command line
+          command-prefix: 'percy exec -- npx'
+        env:
+          PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
